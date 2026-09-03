@@ -10,23 +10,16 @@ import com.mycompany.sggs_pro_api.dto.UsuarioRequestDTO;
 import com.mycompany.sggs_pro_api.dto.UsuarioResponseDTO;
 import com.mycompany.sggs_pro_api.entity.Usuario;
 import com.mycompany.sggs_pro_api.repository.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class UsuarioService {
 
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(
-            UsuarioRepository repository,
-            PasswordEncoder passwordEncoder) {
-
-        this.repository = repository;
-        this.passwordEncoder = passwordEncoder;
-    }
-
     public List<UsuarioResponseDTO> listarTodos() {
-
         return repository.findAll()
                 .stream()
                 .map(this::converterParaResponseDTO)
@@ -34,25 +27,26 @@ public class UsuarioService {
     }
 
     public Optional<UsuarioResponseDTO> buscarPorId(Long id) {
-
         return repository.findById(id)
                 .map(this::converterParaResponseDTO);
     }
 
     public UsuarioResponseDTO salvar(UsuarioRequestDTO dto) {
+        
+        // Verificação preventiva para evitar Erro 500 no banco de dados
+        if (repository.findByLogin(dto.getLogin()).isPresent()) {
+            throw new RuntimeException("Este login já está em uso.");
+        }
 
         Usuario usuario = new Usuario();
-
         usuario.setNome(dto.getNome());
         usuario.setLogin(dto.getLogin());
 
         String senhaCriptografada =
                 passwordEncoder.encode(dto.getSenha());
-
         usuario.setSenha(senhaCriptografada);
 
         Usuario usuarioSalvo = repository.save(usuario);
-
         return converterParaResponseDTO(usuarioSalvo);
     }
 
@@ -68,25 +62,20 @@ public class UsuarioService {
         usuario.setLogin(dto.getLogin());
 
         if (dto.getSenha() != null && !dto.getSenha().isBlank()) {
-
             String senhaCriptografada =
                     passwordEncoder.encode(dto.getSenha());
-
             usuario.setSenha(senhaCriptografada);
         }
 
         Usuario usuarioAtualizado = repository.save(usuario);
-
         return converterParaResponseDTO(usuarioAtualizado);
     }
 
     public void excluir(Long id) {
-
         repository.deleteById(id);
     }
 
     private UsuarioResponseDTO converterParaResponseDTO(Usuario usuario) {
-
         return new UsuarioResponseDTO(
                 usuario.getId(),
                 usuario.getNome(),

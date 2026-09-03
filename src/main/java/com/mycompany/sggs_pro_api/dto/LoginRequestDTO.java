@@ -1,31 +1,14 @@
 package com.mycompany.sggs_pro_api.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
 public class LoginRequestDTO {
 
+    @NotBlank(message = "O login não pode estar vazio")
     private String login;
+
+    @NotBlank(message = "A senha não pode estar vazia")
     private String senha;
-
-    public LoginRequestDTO() {
-    }
-
-    public LoginRequestDTO(String login, String senha) {
-        this.login = login;
-        this.senha = senha;
-    }
-
-    public String getLogin() {
-        return login;
-    }
-
-    public void setLogin(String login) {
-        this.login = login;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
 }

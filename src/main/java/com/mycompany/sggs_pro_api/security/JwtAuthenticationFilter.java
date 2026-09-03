@@ -14,20 +14,14 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UsuarioRepository repository;
-
-    public JwtAuthenticationFilter(
-            JwtService jwtService,
-            UsuarioRepository repository) {
-
-        this.jwtService = jwtService;
-        this.repository = repository;
-    }
 
     @Override
     protected void doFilterInternal(
@@ -39,25 +33,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authorization = request.getHeader("Authorization");
 
         if (authorization == null || !authorization.startsWith("Bearer ")) {
-
             filterChain.doFilter(request, response);
             return;
         }
 
         String token = authorization.substring(7);
-
         String login = jwtService.extrairLogin(token);
 
         repository.findByLogin(login)
                 .ifPresent(usuario -> {
-
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
                                     usuario,
                                     null,
                                     Collections.emptyList()
                             );
-
                     SecurityContextHolder
                             .getContext()
                             .setAuthentication(authentication);
